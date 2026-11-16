@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 860" font-family="'Segoe UI','Microsoft YaHei',sans-serif">
+  <style>
+    .panel{fill:#ffffff;stroke:#d8d2c7;stroke-width:1.5;}
+    .phead{fill:#ece7df;stroke:#d8d2c7;stroke-width:1.5;}
+    .ptitle{fill:#2d2a27;font-size:15px;font-weight:700;}
+    .box{fill:#ffffff;stroke:#3f6b78;stroke-width:1.5;rx:6;}
+    .bbox{fill:#e3ecee;stroke:#3f6b78;stroke-width:1.5;rx:6;}
+    .bmain{fill:#2d2a27;font-size:13px;font-weight:600;}
+    .bsub{fill:#5c5650;font-size:11px;}
+    .arrow{stroke:#3f6b78;stroke-width:1.8;fill:none;}
+    .anum{fill:#3f6b78;font-size:12px;font-weight:700;}
+    .acc{fill:#3f6b78;font-size:12.5px;font-weight:700;}
+    .note{fill:#a86a4c;font-size:11.5px;}
+    .nest{fill:#f4f1ea;stroke:#c9c2b6;stroke-width:1.2;rx:6;}
+    .nl{fill:#5c5650;font-size:11px;}
+    .nlh{fill:#2d2a27;font-size:11.5px;font-weight:700;}
+    .ttl{fill:#2d2a27;font-size:17px;font-weight:700;}
+    .role{fill:#5c5650;font-size:12px;}
+  </style>
+
+  <text x="380" y="30" text-anchor="middle" class="ttl">sdbusplus</text>
+  <text x="380" y="50" text-anchor="middle" class="role">OpenBMC 服务间对话的共同语言 · D-Bus C++ 封装库</text>
+
+  <!-- Panel A 业务流程 -->
+  <rect class="panel" x="20" y="64" width="720" height="380" rx="6"/>
+  <rect class="phead" x="20" y="64" width="720" height="32" rx="6"/>
+  <text x="34" y="86" class="ptitle">一、业务流程：一次 D-Bus 调用的完整链路</text>
+
+  <rect class="box" x="90" y="100" width="580" height="48" rx="6"/>
+  <text x="110" y="120" class="bmain">① 建连接：client bus_t = new_default_system() / new_default()</text>
+  <text x="110" y="138" class="bsub">example/list-users.cpp:15 · src/bus.cpp:48-57 · example/calculator-server.cpp:55</text>
+
+  <line class="arrow" x1="380" y1="148" x2="380" y2="162"/>
+  <polygon points="372,150 388,150 380,162" fill="#3f6b78"/>
+
+  <rect class="box" x="90" y="162" width="580" height="48" rx="6"/>
+  <text x="110" y="182" class="bmain">② 造消息：message_t = new_method_call(service, path, iface, method)</text>
+  <text x="110" y="200" class="bsub">include/sdbusplus/bus.hpp:290-302 · append message.hpp:138-143</text>
+
+  <line class="arrow" x1="380" y1="210" x2="380" y2="224"/>
+  <polygon points="372,212 388,212 380,224" fill="#3f6b78"/>
+
+  <rect class="box" x="90" y="224" width="580" height="48" rx="6"/>
+  <text x="110" y="244" class="bmain">③ D-Bus 转发：bus.call() → sd_bus_call，daemon 按四元组路由</text>
+  <text x="110" y="262" class="bsub">include/sdbusplus/bus.hpp:343-355（METHOD_ERROR 转异常 bus.hpp:351）</text>
+
+  <line class="arrow" x1="380" y1="272" x2="380" y2="286"/>
+  <polygon points="372,274 388,274 380,286" fill="#3f6b78"/>
+
+  <rect class="box" x="90" y="286" width="580" height="48" rx="6"/>
+  <text x="110" y="306" class="bmain">④ server 注册：object_t + vtable 挂到路径 /net/poettering/calculator</text>
+  <text x="110" y="324" class="bsub">example/calculator-server.cpp:62 · object.hpp:76-85 · vtable.hpp:13-101</text>
+
+  <line class="arrow" x1="380" y1="334" x2="380" y2="348"/>
+  <polygon points="372,336 388,336 380,348" fill="#3f6b78"/>
+
+  <rect class="bbox" x="90" y="348" width="580" height="48" rx="6"/>
+  <text x="110" y="368" class="bmain">⑤ handler 执行：multiply() override → new_method_return 回复 client</text>
+  <text x="110" y="386" class="bsub">example/calculator-server.cpp:20 · message.hpp:348-358 · client unpack message.hpp:162-189</text>
+
+  <text x="110" y="414" class="note">服务端配套三步：① manager_t 装 ObjectManager（include/sdbusplus/server/manager.hpp:27-32）</text>
+  <text x="110" y="432" class="note">② request_name 占服务名（include/sdbusplus/bus.hpp:270-279） ③ process_loop 事件循环（bus.hpp:257-264）</text>
+
+  <!-- Panel B 代码体系结构 -->
+  <rect class="panel" x="20" y="456" width="720" height="190" rx="6"/>
+  <rect class="phead" x="20" y="456" width="720" height="32" rx="6"/>
+  <text x="34" y="478" class="ptitle">二、代码体系结构：核心分层与模块</text>
+
+  <text x="40" y="502" class="nlh">核心库分层（libsdbusplus）：</text>
+  <text x="40" y="522" class="nl">· bus_t：连接持有者（include/sdbusplus/bus.hpp:558）</text>
+  <text x="40" y="540" class="nl">  unique_ptr&lt;sd_bus,BusDeleter&gt; 析构自动 unref</text>
+  <text x="40" y="558" class="nl">  SdBusInterface 抽象便于 mock（sdbus.hpp:18-179）</text>
+  <text x="40" y="576" class="nl">· message_t：收发消息（message.hpp:533）</text>
+  <text x="40" y="594" class="nl">  append/unpack · type_id 编译期签名（types.hpp:40）</text>
+  <text x="40" y="612" class="nl">  slot：注册即生命周期（slot.hpp:36-72）</text>
+
+  <text x="400" y="502" class="nlh">服务端 / 异步 / 信号：</text>
+  <text x="400" y="522" class="nl">· object_t + vtable（object.hpp:38 · vtable.hpp:10）</text>
+  <text x="400" y="540" class="nl">  vtable → sd_bus_add_object_vtable（interface.cpp:18）</text>
+  <text x="400" y="558" class="nl">· properties：Get/Set/GetAll（property.hpp:70-71,107）</text>
+  <text x="400" y="576" class="nl">· async::context 双线程（context.hpp:33-43）</text>
+  <text x="400" y="594" class="nl">  caller=sd_bus_wait / worker=sd_bus_process</text>
+  <text x="400" y="612" class="nl">· match rule 信号（match.hpp:51-187）回调/队列两模型</text>
+
+  <!-- Panel C 交互 -->
+  <rect class="panel" x="20" y="658" width="720" height="190" rx="6"/>
+  <rect class="phead" x="20" y="658" width="720" height="32" rx="6"/>
+  <text x="34" y="680" class="ptitle">三、对外 D-Bus 交互</text>
+
+  <text x="40" y="708" class="acc">入站（被谁调）：</text>
+  <text x="40" y="728" class="nl">· 各 phosphor-* 守护进程（ipmid / sensors …）用生成的 client / proxy 做 method call、读写 Properties</text>
+  <text x="40" y="748" class="nl">· 服务名 net.poettering.Calculator · 路径 /net/poettering/calculator · 接口 login1.Manager（ListUsers）</text>
+
+  <text x="40" y="774" class="acc">出站（调谁 / 底层）：</text>
+  <text x="40" y="794" class="nl">· 底层经 SdBusInterface → sd_bus_* → systemd sd-bus / dbus-daemon 转发（bus.hpp:343-355 · sdbus.hpp:218）</text>
+  <text x="40" y="814" class="nl">· 系统总线 org.freedesktop.login1；标准接口 org.freedesktop.DBus.Properties / ObjectManager (Get/Set/GetAll)</text>
+</svg>
